@@ -28,7 +28,7 @@ class plots(GraphScene):
         self.setup_axes(animate = True)
 
         f = self.get_graph(lambda x: x**2 + 1, x_min = -5, x_max = 5)
-        g = self.get_graph(lambda x: x**3)
+        g = self.get_graph(lambda x: x**3, x_min = 0, x_max = 5)
 
         self.play(ShowCreation(f))
         self.play(ShowCreation(g))
