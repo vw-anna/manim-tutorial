@@ -8,7 +8,7 @@ class welcome(Scene): # every animation is a class that inherits from the a mani
         sentence = Tex("Hello everybody and welcome to this intro to Manim") # Tex objects are typeset by Latex
 
         self.play(Write(sentence)) # Writing our sentence s, the default location is in the middle of the screen
-        self.wait(1) # wait 1 second, always end a scene with this
+        self.wait(1) # wait 1 second, always end a scene with a pause
 
 class coordinates(Scene):
     def construct(self):
@@ -22,13 +22,10 @@ class coordinates(Scene):
         self.add(label)
         self.wait(1)
 
-        # now let's move the dot around
-        labdot = VGroup(dot, label) # call "labdot" the unified object of the labelled dot so that it gets moved around as a unit
-        coords = [[0,1,0], [0,-1,0], [1,0,0], [-1,0,0], [3,4,0], [-4,1,0]] 
-        
+        # now let's move the dot around        
         coords = []
-        for x in range(-6,6):
-            for y in range(-3,3):
+        for y in range(4,-5, -1):
+            for x in range(-7,8):
                 coords += [[x,y,0]]
         #There are 3 coordinates for 3D drawings. Let's stick to 2 for now and always set the z-coordinate to 0.
 
@@ -36,11 +33,38 @@ class coordinates(Scene):
             newlabel = MathTex("(%d,%d)" %(pos[0], pos[1])) 
             newlabel.next_to(pos, DOWN) # move the new label to the right position
             self.play(
-                ApplyMethod(dot.move_to, pos),  # move the dot to pos
-                ReplacementTransform(label, newlabel) # replace the old label with the new label and deltete the old label
+                dot.animate.move_to(pos),  # move the dot to pos
+                ReplacementTransform(label, newlabel), # replace the old label with the new label and delete the old label,
+                run_time = .5
             )
-            self.wait(1)
             label = newlabel
+
+class geometry(Scene):
+    def construct(self):
+
+        circle = Circle(radius = .5, color = MYPINK, fill_opacity = .5)
+        poly = Polygon([-3,0,0], [2,1,0], [3,-3,0], [0,-1,0], color = GREEN)
+
+        # we add coordinate dots as a reference
+        for x in range(-7,8):
+            for y in range(-4,5):
+                self.add(Dot([x,y,0]).set_opacity(.1))
+
+        self.play(GrowFromCenter(circle))
+        self.play(circle.animate.shift(UP)) # adds [0,1,0] to coordinates
+        self.play(circle.animate.shift(RIGHT)) # adds [0,1,0] to coordinates
+        self.play(circle.animate.shift(DOWN))
+        self.play(circle.animate.shift(LEFT))
+        self.play(circle.animate.to_corner(UP + RIGHT))
+        self.play(ShrinkToCenter(circle))
+
+        self.wait(1)
+
+        self.play(ShowCreation(poly), run_time = 3)
+        self.play(poly.animate.to_edge(UP))
+        self.play(Uncreate(poly), run_time = 3)
+
+        self.wait(1)
 
 
 class plots(GraphScene):
