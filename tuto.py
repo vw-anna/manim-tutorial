@@ -1,4 +1,6 @@
 from manim import*  # pylint: disable=unused-wildcard-import
+import math
+import sympy
 
 MYPINK = "#E20851" # you can difine custom colors with their html code
 
@@ -67,26 +69,55 @@ class geometry(Scene):
         self.wait(1)
 
 
+
 class plots(GraphScene):
+    # This scene illustrates the definition of exp(x)
     def __init__(self, **kwargs):
             GraphScene.__init__(    # initialize GraphScene attributes
                 self,
                 x_min=-5,
                 x_max=5,
                 y_min=-1,
-                y_max=6,
-                x_labeled_nums=[0,2,3], # ticks on the x-axis that get a label
+                y_max=5,
+                #x_labeled_nums=[1],
                 graph_origin = ORIGIN + 2*DOWN, # ORIGIN is the middle of the screen
                 **kwargs)
 
+    def term(self, x , i):
+        # returns the i-th term of the Taylor expansion of exp(x) in the variable x
+        return(x**(i)/math.factorial(i))
     
     def construct(self):
-
         self.setup_axes(animate = True)
 
-        f = self.get_graph(lambda x: x**2 + 1, x_min = -5, x_max = 5) # lambda is a pyhton conctruction that permits succint definitions of functions. 
-        g = self.get_graph(lambda x: x**3, x_min = 0, x_max = 5)
+        f = self.get_graph(lambda x: math.exp(x), x_min = -5, x_max = 5, color = MYPINK) # lambda is a pyhton conctruction that permits succint definitions of functions. 
+        exp = self.get_graph_label(f, label = "e^x", x_val= 2) 
+        
+        taylor = [] # will contain the Taylor expansions of exp(x) of different degrees
+        labelstring = ["1", "1 + x"] # will contain the LaTeX-strings for the labels
+        gtaylor = dict() # will contain the graph Mobjects
+        labels = dict() # will contain the label Mobjects
+        
+        y = sympy.symbols("y")
+
+        degree = 7
+        for i in range(degree):
+            taylor += [lambda x :  sum([self.term(x,j) for j in range(i+1)])]
+            print(taylor[i](y))
+            gtaylor["t%d" %i] = self.get_graph(taylor[i], color = GREEN)
+            if i > 1:
+                labelstring += [labelstring[i-1] + "+ \\frac{x^{%d}}{%d!}" %(i,i)]
+            labels["l%d" %i] = self.get_graph_label(gtaylor["t%d" %i], label = labelstring[i], x_val = 1, direction = RIGHT + DOWN).scale(.7)
+
+        final = self.get_graph(lambda x :  sum([self.term(x,j) for j in range(degree+1)]))
+        final_label = self.get_graph_label(final, label = labelstring[degree-1] + "+ \\frac{x^{%d}}{%d!}" %(degree,degree)).scale(.6)
 
         self.play(ShowCreation(f))
-        self.play(ShowCreation(g))
+        self.play(ShowCreation(exp))
+        for tay, lab in zip(gtaylor.values(), labels.values()):
+            self.play(ShowCreation(tay), ShowCreation(lab))
+            self.wait(1)
+            self.play(FadeOut(tay), FadeOut(lab))
+        self.play(ShowCreation(final), ShowCreation(final_label))    
         self.wait(1)
+        
