@@ -3,6 +3,7 @@ import math
 import sympy
 
 MYPINK = "#E20851" # you can difine custom colors with their html code
+MYGREEN = "#51e208"
 
 class welcome(Scene): # every animation is a class that inherits from the a manim class (here Scene)
     def construct(self): # the construct function must be present in every scene
@@ -15,7 +16,7 @@ class welcome(Scene): # every animation is a class that inherits from the a mani
 class coordinates(Scene):
     def construct(self):
 
-        dot = Dot() # by default the dot will appear at the center of the screen
+        dot = Dot() # by default the dot will appear at the center of the screen aka ORIGIN aka [0,0,0]
 
         label = MathTex("(0,0)") # this is latex in math mode, more specifically the align* environment
         label.next_to(dot, DOWN) # position  the label below the dot
@@ -24,12 +25,13 @@ class coordinates(Scene):
         self.add(label)
         self.wait(1)
 
-        # now let's move the dot around        
+        # these are the visible integer coordinates
+        # there are 3 coordinates for 3D drawings. Let's stick to 2 for now and always set the z-coordinate to 0.      
         coords = []
         for y in range(4,-5, -1):
             for x in range(-7,8):
                 coords += [[x,y,0]]
-        #There are 3 coordinates for 3D drawings. Let's stick to 2 for now and always set the z-coordinate to 0.
+       
 
         for pos in coords:
             newlabel = MathTex("(%d,%d)" %(pos[0], pos[1])) 
@@ -69,18 +71,16 @@ class geometry(Scene):
         self.wait(1)
 
 
-
 class plots(GraphScene):
-    # This scene illustrates the definition of exp(x)
+    # This scene illustrates the definition of exp(x) by showing the different polynomial expansions
     def __init__(self, **kwargs):
-            GraphScene.__init__(    # initialize GraphScene attributes
+            GraphScene.__init__(   
                 self,
                 x_min=-5,
                 x_max=5,
-                y_min=-1,
-                y_max=5,
-                #x_labeled_nums=[1],
-                graph_origin = ORIGIN + 2*DOWN, # ORIGIN is the middle of the screen
+                y_min=0,
+                y_max=8,
+                graph_origin = ORIGIN + 2.7*DOWN, # ORIGIN is the middle of the screen
                 **kwargs)
 
     def term(self, x , i):
@@ -90,34 +90,35 @@ class plots(GraphScene):
     def construct(self):
         self.setup_axes(animate = True)
 
-        f = self.get_graph(lambda x: math.exp(x), x_min = -5, x_max = 5, color = MYPINK) # lambda is a pyhton conctruction that permits succint definitions of functions. 
-        exp = self.get_graph_label(f, label = "e^x", x_val= 2) 
+        f = self.get_graph(lambda x: math.exp(x), x_min = -5, x_max = 5, color = MYPINK) # graph of the exp function
+        exp = self.get_graph_label(f, label = "e^x", x_val= 2) # TeX label
         
-        taylor = [] # will contain the Taylor expansions of exp(x) of different degrees
-        labelstring = ["1", "1 + x"] # will contain the LaTeX-strings for the labels
-        gtaylor = dict() # will contain the graph Mobjects
-        labels = dict() # will contain the label Mobjects
-        
-        y = sympy.symbols("y")
-
-        degree = 7
-        for i in range(degree):
-            taylor += [lambda x :  sum([self.term(x,j) for j in range(i+1)])]
-            print(taylor[i](y))
-            gtaylor["t%d" %i] = self.get_graph(taylor[i], color = GREEN)
-            if i > 1:
-                labelstring += [labelstring[i-1] + "+ \\frac{x^{%d}}{%d!}" %(i,i)]
-            labels["l%d" %i] = self.get_graph_label(gtaylor["t%d" %i], label = labelstring[i], x_val = 1, direction = RIGHT + DOWN).scale(.7)
-
-        final = self.get_graph(lambda x :  sum([self.term(x,j) for j in range(degree+1)]))
-        final_label = self.get_graph_label(final, label = labelstring[degree-1] + "+ \\frac{x^{%d}}{%d!}" %(degree,degree)).scale(.6)
-
         self.play(ShowCreation(f))
         self.play(ShowCreation(exp))
-        for tay, lab in zip(gtaylor.values(), labels.values()):
-            self.play(ShowCreation(tay), ShowCreation(lab))
-            self.wait(1)
-            self.play(FadeOut(tay), FadeOut(lab))
-        self.play(ShowCreation(final), ShowCreation(final_label))    
-        self.wait(1)
+
+        degree = 15 # degree to which the taylor expansions will be shown
+        g = self.get_graph(lambda x:1, color = MYGREEN) # 0-th order approximation
+        polynomial = MathTex("1").scale(.7).to_corner(DOWN + RIGHT, buff= .3).set_color(MYGREEN)
         
+        self.play(ShowCreation(g), Write(polynomial[0]))
+        self.wait(1)
+        for i in range(1,degree + 1):
+            next_g = self.get_graph(lambda x :  sum([self.term(x,j) for j in range(i+1)]),color = MYGREEN) # graph of the i-th polynomial expansion
+            
+            if i == 1:
+                # this case is necessary to print 1 + x instead of 1+x/1! for the first polynomial expansion
+                polynomial_string = next_polynomial_string = "1 + x" 
+            else:
+                next_polynomial_string = polynomial_string + "+ \\frac{x^{%d}}{%d!}" %(i,i)
+            
+            next_polynomial = MathTex(next_polynomial_string).scale(.7).to_corner(DOWN + RIGHT,  buff= .3).set_color(MYGREEN)   # make MathTex mobject out of string
+            self.play(
+                ReplacementTransform(g, next_g),
+                ReplacementTransform(polynomial, next_polynomial)
+                )
+            self.wait(.7)
+            g = next_g
+            polynomial = next_polynomial
+            polynomial_string = next_polynomial_string
+        self.wait(1)
+                
