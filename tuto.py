@@ -1,8 +1,7 @@
 from manim import*  # pylint: disable=unused-wildcard-import
-import math
-import sympy
+import math # we need this for the exponential function
 
-MYPINK = "#E20851" # you can difine custom colors with their html code
+MYPINK = "#E20851" # you can define custom colors with their html code
 MYGREEN = "#51e208"
 
 class welcome(Scene): # every animation is a class that inherits from the a manim class (here Scene)
@@ -34,13 +33,16 @@ class coordinates(Scene):
        
 
         for pos in coords:
+            newdot = Dot().move_to(dot.get_center()) # a new dot in the same position as dot
             newlabel = MathTex("(%d,%d)" %(pos[0], pos[1])) 
             newlabel.next_to(pos, DOWN) # move the new label to the right position
             self.play(
-                dot.animate.move_to(pos),  # move the dot to pos
-                ReplacementTransform(label, newlabel), # replace the old label with the new label and delete the old label,
-                run_time = .5
+                newdot.animate.move_to(pos), # move the new dot   
+                dot.animate.set_opacity(.3), # make the old dot transparant
+                ReplacementTransform(label, newlabel), # replace the old label with the new label and delete the old label
+                run_time = .7
             )
+            dot = newdot
             label = newlabel
 
 class geometry(Scene):
@@ -71,6 +73,7 @@ class geometry(Scene):
         self.wait(1)
 
 
+
 class plots(GraphScene):
     # This scene illustrates the definition of exp(x) by showing the different polynomial expansions
     def __init__(self, **kwargs):
@@ -90,20 +93,20 @@ class plots(GraphScene):
     def construct(self):
         self.setup_axes(animate = True)
 
-        f = self.get_graph(lambda x: math.exp(x), x_min = -5, x_max = 5, color = MYPINK) # graph of the exp function
+        f = self.get_graph(lambda x: math.exp(x), x_min = -5, x_max = 5, color = MYGREEN) # graph of the exp function
         exp = self.get_graph_label(f, label = "e^x", x_val= 2) # TeX label
         
         self.play(ShowCreation(f))
         self.play(ShowCreation(exp))
 
         degree = 15 # degree to which the taylor expansions will be shown
-        g = self.get_graph(lambda x:1, color = MYGREEN) # 0-th order approximation
-        polynomial = MathTex("1").scale(.7).to_corner(DOWN + RIGHT, buff= .3).set_color(MYGREEN)
+        g = self.get_graph(lambda x:1, color = MYPINK) # 0-th order approximation
+        polynomial = MathTex("1").scale(.7).to_corner(DOWN + RIGHT, buff= .3).set_color(MYPINK)
         
         self.play(ShowCreation(g), Write(polynomial[0]))
         self.wait(1)
         for i in range(1,degree + 1):
-            next_g = self.get_graph(lambda x :  sum([self.term(x,j) for j in range(i+1)]),color = MYGREEN) # graph of the i-th polynomial expansion
+            next_g = self.get_graph(lambda x :  sum([self.term(x,j) for j in range(i+1)]),color = MYPINK) # graph of the i-th polynomial expansion
             
             if i == 1:
                 # this case is necessary to print 1 + x instead of 1+x/1! for the first polynomial expansion
@@ -111,7 +114,7 @@ class plots(GraphScene):
             else:
                 next_polynomial_string = polynomial_string + "+ \\frac{x^{%d}}{%d!}" %(i,i)
             
-            next_polynomial = MathTex(next_polynomial_string).scale(.7).to_corner(DOWN + RIGHT,  buff= .3).set_color(MYGREEN)   # make MathTex mobject out of string
+            next_polynomial = MathTex(next_polynomial_string).scale(.7).to_corner(DOWN + RIGHT,  buff= .3).set_color(MYPINK)   # make MathTex mobject out of string
             self.play(
                 ReplacementTransform(g, next_g),
                 ReplacementTransform(polynomial, next_polynomial)
