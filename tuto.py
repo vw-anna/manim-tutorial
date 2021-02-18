@@ -58,7 +58,7 @@ class geometry(Scene):
 
         self.play(GrowFromCenter(circle))
         self.play(circle.animate.shift(UP)) # adds [0,1,0] to coordinates
-        self.play(circle.animate.shift(RIGHT)) # adds [0,1,0] to coordinates
+        self.play(circle.animate.shift(RIGHT)) # adds [1,0,0] to coordinates
         self.play(circle.animate.shift(DOWN))
         self.play(circle.animate.shift(LEFT))
         self.play(circle.animate.to_corner(UP + RIGHT))
@@ -67,7 +67,7 @@ class geometry(Scene):
         self.wait(1)
 
         self.play(ShowCreation(poly), run_time = 3)
-        self.play(poly.animate.to_edge(UP))
+        self.play(poly.animate.to_edge(UP, buff = .5))
         self.play(Uncreate(poly), run_time = 3)
 
         self.wait(1)
@@ -216,8 +216,6 @@ class calculations(Scene):
         self.wait(2)
         self.play(Transform(solution[4:], expdivtwo.next_to(solution[3], RIGHT, buff = .05)))
         self.wait(1)
-
-
 
 class plots(GraphScene):
     # This scene illustrates the definition of exp(x) by showing the different polynomial expansions
