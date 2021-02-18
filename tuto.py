@@ -72,6 +72,151 @@ class geometry(Scene):
 
         self.wait(1)
 
+class calculations(Scene):
+    # we will animate the process of finding a primitive for sin(x)exp(x) by using integration by parts twice
+    def construct(self):
+        integral = MathTex(
+            r"\int",r"\sin(x)",r"e^x", r"dx", r"&=",    #0,1,2,3,4
+            r"\sin(x)e^x", r"-\int",r"\cos(x)",r"e^x", r"dx\\", #5,6,7,8,9
+            r"&= \sin(x)e^x", #10 
+            r"-\left(", r"\cos(x)e^x", #11,12
+            r"-\int" , r"-\sin(x)e^x", r"dx\right)\\", #13, 14, 15
+            r"&=", r"(\sin(x)-\cos(x))e^x", r"-", r"\int\sin(x)e^xdx", #16, 17, 18,19
+            ).to_corner(UL) 
+            # MathTex is the align* environment so always mathmode. 
+            # Either use the r flag or double all \ symbols
+        
+        solution = MathTex(r"2",r"\int\sin(x)e^xdx", r"=", r"(\sin(x)-\cos(x))", r"e^x", r"\frac{1}{2}" ).shift(2.5*DOWN)
+        expdivtwo = MathTex(r"\frac{e^x}{2}" )
+
+        explain = Tex(r"Integral by parts:", r"$\int fg'dx = fg - \int f'g dx$").to_edge(DOWN) # regular Tex, centered. Do not forget math mode!
+
+        part1 = MathTex(
+            r"f(x)=", r"\sin(x)", r"&\Rightarrow", r"f'(x) =", r"\cos(x)\\",
+            r"g'(x)=", r"e^x", r"&\Rightarrow", r"g(x)=", r"e^x"
+            )
+        boxs11 = VGroup(
+            SurroundingRectangle(part1[1], buff = .1).set_color(WHITE),
+            SurroundingRectangle(part1[9], buff = .1).set_color(WHITE)
+            ) # VGroup unifies mobjects so that they can be manipulated as one
+        boxs12 = VGroup(
+            SurroundingRectangle(part1[4], buff = .1).set_color(WHITE),
+            SurroundingRectangle(part1[6], buff = .1).set_color(WHITE)
+            )
+
+        part2 = MathTex(
+            r"f(x)=", r"\cos(x)", r"&\Rightarrow", r"f'(x) =", r"-\sin(x)\\",
+            r"g'(x)=", r"e^x", r"&\Rightarrow", r"g(x)=", r"e^x"
+            ).shift(.5*DOWN)
+        boxs21 = VGroup(
+            SurroundingRectangle(part2[1], buff = .1).set_color(WHITE),
+            SurroundingRectangle(part2[9], buff = .1).set_color(WHITE)
+            ) # VGroup unifies mobjects so that they can be manipulated as one
+        boxs22 = VGroup(
+            SurroundingRectangle(part2[4], buff = .1).set_color(WHITE),
+            SurroundingRectangle(part2[6], buff = .1).set_color(WHITE)
+            )
+        
+        intbox = VGroup(
+            SurroundingRectangle(integral[:4], buff = .1).set_color(MYPINK),       
+            SurroundingRectangle(integral[19], buff = .1).set_color(MYPINK))
+        solbox = SurroundingRectangle(integral[17], buff = .1).set_color(MYPINK)
+
+        #setup
+        self.play(Write(integral[:5]))
+        self.play(Write(explain))
+        self.wait(2)
+        
+        # first parts integral
+        self.play(
+            integral[1].animate.set_color(MYPINK),
+            Write(part1[:2].set_color(MYPINK))
+        ) # choose and highlight f
+        self.wait(2)
+        self.play(Write(part1[2:5])) # differentiate f
+        self.wait(2)
+        self.play(
+            integral[2].animate.set_color(MYGREEN),
+            Write(part1[5:7].set_color(MYGREEN))
+            ) # choose and highlight g
+        self.wait(2)
+        self.play(Write(part1[7:])) # find a primitive for g
+        self.wait(2)
+        self.play(
+            Write(integral[5]),
+            FadeIn(boxs11)
+            ) # first term of integration by parts
+        self.wait(2)
+        self.play(
+            Write(integral[6]),
+            FadeOut(boxs11)
+            )
+        self.play(
+            Write(integral[7:10]),
+            FadeIn(boxs12)
+            ) # second term of integration by parts
+        self.wait(2)
+        self.play(FadeOut(boxs12), FadeOut(part1), integral[1:3].animate.set_color(WHITE))
+        self.wait(2)
+
+        # second parts integral
+        self.play(Write(integral[10:12]))
+        self.wait(2)
+        self.play(
+            integral[7].animate.set_color(MYPINK),
+            Write(part2[:2].set_color(MYPINK))
+        )
+        self.wait(2)
+        self.play(Write(part2[2:5]))
+        self.wait(2)
+        self.play(
+            integral[8].animate.set_color(MYGREEN),
+            Write(part2[5:7].set_color(MYGREEN))
+            )
+        self.wait(2)
+        self.play(Write(part2[7:]))
+        self.wait(2)
+
+        self.play(
+            Write(integral[12]),
+            FadeIn(boxs21)
+            )
+        self.wait(2)
+        self.play(
+            Write(integral[13]),
+            FadeOut(boxs21)
+            )
+        self.wait(2)
+        self.play(
+            FadeIn(boxs22),
+            Write(integral[14:16])
+            )
+        self.wait(2)
+        self.play(FadeOut(boxs22), FadeOut(part2), integral[7:9].animate.set_color(WHITE))
+        self.wait(1)
+        
+        # we are done with integration by partts
+        self.play(FadeOutAndShift(explain, DOWN))
+        self.wait(2)
+
+        # rearrange the equation
+        self.play(Write(integral[16:]))
+        self.wait(2)
+        self.play(ShowCreation(intbox))
+        self.wait(1)
+        self.play(Write(solution[:3]))
+        self.wait(2)
+        self.play(FadeOut(intbox), ShowCreation(solbox))
+        self.wait(1)
+        self.play(Write(solution[3:5]))
+        self.wait(2)
+        self.play(FadeOut(integral), FadeOut(solbox), solution[:5].animate.move_to(ORIGIN))
+        self.wait(2)
+        self.play(FadeOut(solution[0]), Write(solution[5].next_to(solution[4], RIGHT))) 
+        self.wait(2)
+        self.play(Transform(solution[4:], expdivtwo.next_to(solution[3], RIGHT, buff = .05)))
+        self.wait(1)
+
 
 
 class plots(GraphScene):
